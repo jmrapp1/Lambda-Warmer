@@ -1,0 +1,6 @@
+{
+  "LambdaWarmerFunction":
+    {
+      "MinuteSchedule": "5"
+    }
+}

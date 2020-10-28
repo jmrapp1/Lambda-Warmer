@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+  - AWS::Serverless-2016-10-31
+Description: >
+  Lambda Warming
+  Configurable lambda that will call other lambdas to keep them warm
+
+Parameters:
+  FunctionName:
+    Type: String
+    Default: 'Lambda-Warmer'
+  MinuteSchedule:
+    Type: String
+    Default: '5'
+
+Resources:
+  LambdaWarmerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs12.x
+      CodeUri: .
+      Handler: dist/index.handler
+      MemorySize: 512
+      Timeout: 30
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'lambda:InvokeFunction'
+              Resource:
+                - '*' # This can be changed to only invoke functions that you want to keep warm
+
+  LambdaWarmingScheduledRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: 'LambdaWarmingScheduledRule'
+      ScheduleExpression: !Sub
+        - rate(${Min} minutes)
+        - { Min: !Ref MinuteSchedule }
+      State: 'ENABLED'
+      Targets:
+        - Arn: !GetAtt LambdaWarmerFunction.Arn
+          Id: 'TargetFunctionV1'
+
+  InvokeLambdaPerms:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaWarmerFunction
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn:
+        !GetAtt LambdaWarmingScheduledRule.Arn

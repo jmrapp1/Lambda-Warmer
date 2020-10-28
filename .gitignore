@@ -1,0 +1,11 @@
+coverage/
+node_modules/
+test-results.xml
+dist/
+
+.nyc_output
+.idea
+
+.env
+
+packaged-template.yml
