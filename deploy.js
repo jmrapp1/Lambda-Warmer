@@ -2,7 +2,7 @@ const fs = require('fs');
 const execa = require('execa');
 require('dotenv').config();
 
-const SCHEDULE_PATH = './schedule_data.json';
+const SCHEDULE_PATH = './warming_config.json';
 
 function getScheduleData() {
     if (!fs.existsSync(SCHEDULE_PATH)) {
@@ -18,13 +18,13 @@ function getScheduleData() {
 }
 
 async function processScheduleData() {
-    const scheduleData = getScheduleData()
-        .replace(/'/g, '\"')
+    let scheduleData = getScheduleData();
+    if (!scheduleData) {
+        return console.error('Could not find \'schedule_path.json\'. Please provide.');
+    }
+    scheduleData = scheduleData.replace(/'/g, '\"')
         .split('\\') // CF parses escaped strings weirdly; the split/join is a hack around it
         .join('\\\\');
-    if (!scheduleData) {
-        console.error('Could not find \'schedule_path.json\'. Please provide.');
-    }
 
     const s3Bucket = process.env.SAM_S3_BUCKET;
     const stackName = process.env.CF_STACK_NAME;
@@ -33,16 +33,13 @@ async function processScheduleData() {
     const profileArg = awsProfile ? `--profile ${awsProfile}` : '';
 
     if (!s3Bucket) {
-        console.error('Please provide SAM_S3_BUCKET env property');
-        return;
+        return console.error('Please provide SAM_S3_BUCKET env property');
     }
     if (!stackName) {
-        console.error('Please provide CF_STACK_NAME env property');
-        return;
+        return console.error('Please provide CF_STACK_NAME env property');
     }
     if (!awsRegion) {
-        console.error('Please provide AWS_REGION env property');
-        return;
+        return console.error('Please provide AWS_REGION env property');
     }
 
     console.log(scheduleData)
