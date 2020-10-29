@@ -7,5 +7,6 @@ dist/
 .idea
 
 .env
+warming_config.json
 
 packaged-template.yml

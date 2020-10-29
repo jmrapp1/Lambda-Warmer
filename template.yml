@@ -1,10 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform:
   - AWS::Serverless-2016-10-31
-Description: >
-  Lambda Warming
-  Configurable lambda that will call other lambdas to keep them warm
-
+Description: Configurable lambda that invokes other lambdas to keep them warm
 Parameters:
   FunctionName:
     Type: String
@@ -12,6 +9,9 @@ Parameters:
   MinuteSchedule:
     Type: String
     Default: '5'
+  LambdasToWarmJson:
+    Type: String
+    Default: '[]'
 
 Resources:
   LambdaWarmerFunction:
@@ -20,8 +20,8 @@ Resources:
       Runtime: nodejs12.x
       CodeUri: .
       Handler: dist/index.handler
-      MemorySize: 512
-      Timeout: 30
+      MemorySize: 256
+      Timeout: 15
       AutoPublishAlias: live
       DeploymentPreference:
         Type: AllAtOnce
@@ -46,6 +46,7 @@ Resources:
       Targets:
         - Arn: !GetAtt LambdaWarmerFunction.Arn
           Id: 'TargetFunctionV1'
+          Input: !Ref LambdasToWarmJson
 
   InvokeLambdaPerms:
     Type: AWS::Lambda::Permission
