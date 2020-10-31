@@ -30,6 +30,7 @@ async function processScheduleData() {
     const stackName = process.env.CF_STACK_NAME;
     const awsProfile = process.env.AWS_PROFILE;
     const awsRegion = process.env.AWS_REGION;
+    const warmingRate = process.env.WARMING_RATE || '5';
     const profileArg = awsProfile ? `--profile ${awsProfile}` : '';
 
     if (!s3Bucket) {
@@ -50,7 +51,8 @@ async function processScheduleData() {
         console.log('Packaging SAM Template');
         await execa.commandSync(`sam package --template-file template.yml --output-template-file packaged-template.yml --s3-bucket ${ s3Bucket } ${ profileArg }`);
         console.log('Running SAM Deployment. This may take some time.');
-        await execa.commandSync(`sam deploy --template-file packaged-template.yml --stack-name ${ stackName } --region ${awsRegion} --capabilities CAPABILITY_IAM ${ profileArg } --parameter-overrides LambdasToWarmJson='${scheduleData}'`);console.log(`Deployed Successfully Under Stack '${stackName}'`);
+        await execa.commandSync(`sam deploy --template-file packaged-template.yml --stack-name ${ stackName } --region ${awsRegion} --capabilities CAPABILITY_IAM ${ profileArg } --parameter-overrides MinuteSchedule=${warmingRate} LambdasToWarmJson='${scheduleData}'`);
+        console.log(`Deployed Successfully Under Stack '${stackName}'`);
     } catch (e) {
         console.error('Could not deploy Lambda Warmer: ' + e.stack);
     }

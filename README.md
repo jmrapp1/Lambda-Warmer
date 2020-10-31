@@ -13,16 +13,15 @@ Create `.env` file with the following properties
 SAM_S3_BUCKET = <bucket to hold SAM output>
 AWS_REGION = <AWS region>
 CF_STACK_NAME = <CloudFormation stack name>
-AWS_PROFILE = <Optional AWS credential profile>
+AWS_PROFILE = <Optional: AWS credential profile>
+WARMING_RATE = <Optional: Rate (in minutes) to warm functions; Default=5 
 ```
 
 ### Warming Schedule Configuration:
 
 You can fully configure which lambdas you'd like to keep warm by 
-creating a warming configuration file.
-
-Start by creating a file called `warming_config.json`. The configurations
-are defined in the following format
+creating a warming configuration file. Start by creating a file called `warming_config.json`. The configurations
+are defined in the following format:
 ```
 [
     {
@@ -61,7 +60,8 @@ JSON data to the lambda when invoked:
 ## Deployment
 
 Deployment is easy. Run `npm run deploy` to create/update a CloudFront 
-stack for the warming lambda.
+stack for the warming lambda. This automatically creates and starts the warming
+schedule
 
 ## Handling Warming Calls From The Invoked Lambdas Side
 
